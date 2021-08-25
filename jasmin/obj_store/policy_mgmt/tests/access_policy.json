@@ -1,0 +1,43 @@
+{
+    "Version": "2008-10-17",
+    "Id": "test-policy",
+    "Statement": [
+      {
+        "Sid": "1: Standard access for users",
+        "Effect": "Allow",
+        "Principal": {
+          "user": [],
+          "group": [
+            "test-members"
+          ]
+        },
+        "Action": [
+          "ListDomain",
+          "ListBucket",
+          "GetBucket",
+          "GetDomain",
+          "DeleteBucket",
+          "CreateBucket",
+          "CopyBucket",
+          "GetObject",
+          "PutObject",
+          "DeleteObject",
+          "CreateObject",
+          "CopyObject",
+          "AppendObject",
+          "ListEtc",
+          "GetPolicy",
+          "GetQuota",
+          "GetObjectAcl",
+          "GetBucketAcl",
+          "GetBucketCORS",
+          "PutBucketAcl",
+          "PutBucketCORS",
+          "PutObjectAcl",
+          "ListTokens",
+          "ValidateToken"
+        ],
+        "Resource": "*"
+      }
+    ]
+  }
