@@ -40,12 +40,6 @@ def policy_string() -> str:
   }"""
 
 
-def test_content(response) -> None:
-    """Sample pytest test function with the pytest fixture as an argument."""
-    # from bs4 import BeautifulSoup
-    # assert 'GitHub' in BeautifulSoup(response.content).title.string
-
-
 def test_command_line_interface() -> None:
     """Test the CLI."""
     runner = CliRunner()

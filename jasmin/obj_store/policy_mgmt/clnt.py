@@ -1,11 +1,8 @@
-  """Module for interacting with the S3 API."""
-
+"""Module for interacting with the S3 API."""
 __author__ = """Philip Kershaw"""
 __contact__ = 'philip.kershaw@stfc.ac.uk'
 __copyright__ = "Copyright 2021 United Kingdom Research and Innovation"
 __license__ = "BSD - see LICENSE file in top-level package directory"
-import json
-
 import boto3
 from botocore import UNSIGNED
 from botocore.client import Config
@@ -16,8 +13,10 @@ from .policy import S3Policy
 class S3PolicyClnt:
     """Class for interacting with S3 API to read and make changes to access
     policies"""
+
     def __init__(self, uri: str, key: str = None, secret: str = None) -> None:
         """Initialise Boto3 client"""
+
         if key is None:
             boto3.client('s3', config=Config(signature_version=UNSIGNED))
 
@@ -42,7 +41,7 @@ class S3PolicyClnt:
 
         # Get the policy
         get_bucket_policy_resp = self._clnt.get_bucket_policy(
-                                                          Bucket=bucket_name)
+                                                            Bucket=bucket_name)
 
         policy = S3Policy.from_string(get_bucket_policy_resp['Policy'])
 

@@ -44,7 +44,7 @@ class S3Policy:
         self._policy = TS3Policy(Version=version, Id=id, Statement=statement)
 
     @classmethod
-    def from_policy_file(cls, policy_filepath: str) -> 'S3Policy':
+    def from_file(cls, policy_filepath: str) -> 'S3Policy':
         """Construct policy from input JSON file"""
         policy = cls()
         policy.parse_from_file(policy_filepath)
@@ -52,7 +52,7 @@ class S3Policy:
         return policy
 
     @classmethod
-    def from_policy_string(cls, policy_s: str) -> 'S3Policy':
+    def from_string(cls, policy_s: str) -> 'S3Policy':
         """Construct policy from input JSON file"""
         policy = cls()
         policy.parse_from_string(policy_s)
