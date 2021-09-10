@@ -79,6 +79,6 @@ def test_parse_policy_from_file() -> None:
 
 def test_parse_policy_from_string(policy_string: str) -> None:
     assert policy_string
-    policy = S3Policy.from_policy_string(policy_string)
+    policy = S3Policy.from_string(policy_string)
 
     assert "Standard access for users" in policy.serialisation

@@ -15,7 +15,7 @@ class AuthenticationError(Exception):
 
 
 class RequestError(Exception):
-    """Error with request"""
+    """Error with API request"""
 
 
 class CaringoClnt:
@@ -29,6 +29,7 @@ class CaringoClnt:
         self._base_uri = base_uri
         self._adm_uri = urllib.parse.urljoin(self._base_uri, self.ADM_IFACE_PFX)
         
+        # Call API to get token and initiate session
         self.get_tok(username, passwd)
 
     def get_tok(self, username: str, passwd: str) -> None:
@@ -47,7 +48,8 @@ class CaringoClnt:
 
     def _get_domain_item(self, tenant_name: str, 
                 domain_name: str, operation: str) -> Union[dict, List[dict]]:
-        """Execute GET operation on given artifact for domain"""
+        """Execute GET operation on given artifact for domain. operation
+        is a path suffix"""
         path_dict = {
             "tenant": tenant_name, "domain": domain_name, "operation": operation
         }
