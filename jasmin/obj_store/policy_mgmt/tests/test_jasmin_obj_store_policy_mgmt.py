@@ -72,7 +72,7 @@ def test_serialise_policy() -> None:
 def test_parse_policy_from_file() -> None:
     this_dir: str = os.path.dirname(__file__)
     policy_filepath: str = os.path.join(this_dir, "access_policy.json")
-    policy = S3Policy.from_policy_file(policy_filepath)
+    policy = S3Policy.from_file(policy_filepath)
 
     assert "Standard access for users" in policy.serialisation
 
