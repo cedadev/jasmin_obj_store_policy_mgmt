@@ -7,10 +7,13 @@ __contact__ = 'philip.kershaw@stfc.ac.uk'
 __copyright__ = "Copyright 2021 United Kingdom Research and Innovation"
 __license__ = "BSD - see LICENSE file in top-level package directory"
 import os
+import json
+import typing
 from typing import List
-import pytest
 
+import pytest
 from click.testing import CliRunner
+
 from jasmin.obj_store.policy_mgmt import cli
 from jasmin.obj_store.policy_mgmt.policy import S3Policy, TS3PolicyStatement, \
     TS3Principal
@@ -38,6 +41,11 @@ def policy_string() -> str:
       }
     ]
   }"""
+
+
+@pytest.fixture
+def policy_dict(policy_string: str) -> dict:
+    return json.loads(typing.cast(str, policy_string))
 
 
 def test_command_line_interface() -> None:
@@ -78,7 +86,11 @@ def test_parse_policy_from_file() -> None:
 
 
 def test_parse_policy_from_string(policy_string: str) -> None:
-    assert policy_string
     policy = S3Policy.from_string(policy_string)
 
-    assert "Standard access for users" in policy.serialisation
+    assert "test-members" in policy.serialisation
+
+def test_parse_policy_from_dict(policy_dict: dict) -> None:
+    policy = S3Policy.from_dict(policy_dict)
+
+    assert "ListBucket" in policy.serialisation

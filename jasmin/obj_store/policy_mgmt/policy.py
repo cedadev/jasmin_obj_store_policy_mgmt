@@ -59,6 +59,14 @@ class S3Policy:
 
         return policy
 
+    @classmethod
+    def from_dict(cls, policy_d: dict) -> 'S3Policy':
+        """Construct policy from input JSON dictionary"""
+        policy = cls()
+        policy.parse_from_dict(policy_d)
+
+        return policy
+
     def __repr__(self) -> str:
         return json.dumps(self._policy)
 
@@ -66,17 +74,23 @@ class S3Policy:
     def serialisation(self) -> str:
         return self.__repr__()
 
+    def parse_from_dict(self, policy_d: dict) -> None:
+        """Set policy from policy represented as a dict"""
+        self._policy = TS3Policy(Version=policy_d['Version'],
+                                Id=policy_d['Id'],
+                                Statement=policy_d['Statement'])
+
     def parse_from_file(self, policy_filepath: str) -> None:
         """Set policy from input JSON file"""
         with open(policy_filepath, "r") as policy_file:
             policy_file_d = json.load(policy_file)
 
-        self._policy = TS3Policy(policy_file_d)
+        self.parse_from_dict(policy_file_d)
 
     def parse_from_string(self, policy_s: str) -> None:
         """Set policy from JSON policy string serialisation"""
         policy_file_d = json.loads(policy_s)
 
-        self._policy = TS3Policy(policy_file_d)
+        self.parse_from_dict(policy_file_d)
 
 

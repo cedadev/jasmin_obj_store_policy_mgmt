@@ -10,7 +10,7 @@ import json
 import pytest
 
 from jasmin.obj_store.policy_mgmt.policy import S3Policy
-from jasmin.obj_store.policy_mgmt.clnt import S3PolicyClnt
+from jasmin.obj_store.policy_mgmt.s3_clnt import S3PolicyClnt
 
 @pytest.fixture
 def this_dir() -> str:

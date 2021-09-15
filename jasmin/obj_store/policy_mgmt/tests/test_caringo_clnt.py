@@ -7,7 +7,9 @@ import os
 import json
 import pytest
 
-from ..caringo_clnt import CaringoClnt
+from jasmin.obj_store.policy_mgmt.caringo_clnt import CaringoClnt
+from jasmin.obj_store.policy_mgmt.policy import S3Policy
+
 
 @pytest.fixture
 def this_dir() -> str:
@@ -39,6 +41,11 @@ def settings(settings_filepath: str) -> dict:
 
     return settings
 
+@pytest.fixture
+def s3_policy(settings: dict) -> S3Policy:
+    s3_policy = S3Policy.from_dict(settings['s3_policy'])
+    return s3_policy
+
 def test_init(creds: dict, settings: dict) -> CaringoClnt:
     clnt = CaringoClnt(settings['base_uri'], creds['username'], creds['passwd'])
     assert clnt
@@ -56,3 +63,11 @@ def test_get_domain_policy(creds: dict, settings: dict) -> None:
     policy = clnt.get_domain_policy(settings['tenancy_name'], 
                                     settings['domain_name'])
     assert policy
+
+def test_put_domain_policy(creds: dict, settings: dict, 
+                        s3_policy: S3Policy) -> None:
+    clnt = test_init(creds, settings)
+
+    clnt.put_domain_policy(settings['tenancy_name'], settings['domain_name'],
+                        s3_policy)
+    pass
