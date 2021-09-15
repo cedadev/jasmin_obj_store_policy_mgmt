@@ -41,31 +41,33 @@ class CaringoClnt:
         self._adm_uri: str = urllib.parse.urljoin(self._base_uri, 
                                                 self.ADM_IFACE_PFX)
 
-        self._session: requests.Session = requests.Session()
-
+        self._session: Union[None, requests.Session] = None
+        self._tok: Union[None, str] = None
+        
         # Call API to get token and initiate session
-        self.get_tok(username, passwd)
+        self.init_session(username, passwd)
 
-    def get_tok(self, username: str, passwd: str) -> None:
+    def init_session(self, username: str, passwd: str) -> None:
         """Obtain a token in order to start a session"""
 
         tok_uri: str = urllib.parse.urljoin(self._base_uri, self.TOK_PATH)
-        resp: requests.Response = requests.post(tok_uri, 
+
+        self._session = requests.Session()
+        resp: requests.Response = self._session.post(tok_uri, 
                                         auth=HTTPBasicAuth(username, passwd))
         if not resp.ok:
             raise AuthenticationError("Error authenticating "
                                     "user {!r}: {}".format(username, resp.text),
                                     resp)
-
-        tok: str = resp.cookies.get(self.COOKIE_NAME)
-        if tok is None:
+        
+        self._tok = resp.cookies.get(self.COOKIE_NAME)
+        if self._tok is None:
             raise AuthenticationError("Expecting cookie named "
-                                    "{!r} in response".format(self.COOKIE_NAME),
-                                    resp)
+                            "{!r} in response".format(self.COOKIE_NAME), resp)
 
-        # Make a requests session containing the auth token
-        self._session = requests.Session()
-        self._session.cookies[self.COOKIE_NAME] = tok
+    @property
+    def tok(self):
+        return self._tok
 
     def _get_domain_item(self, tenant_name: str, domain_name: str, 
                         operation: str) -> Union[dict, List[dict]]:

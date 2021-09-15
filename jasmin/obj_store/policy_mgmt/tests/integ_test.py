@@ -38,6 +38,7 @@ def settings(settings_filepath: str) -> dict:
 
     return settings
 
+@pytest.mark.skip("No bucket set")
 def test_get_access_policy(creds: dict, settings: dict) -> None:
     """Try retrieving an existing policy"""
     policy_clnt = S3PolicyClnt(settings["endpoint"], key=creds["key"], 
