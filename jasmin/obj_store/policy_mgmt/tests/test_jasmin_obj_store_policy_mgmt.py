@@ -48,16 +48,42 @@ def policy_dict(policy_string: str) -> dict:
     return json.loads(typing.cast(str, policy_string))
 
 
-def test_command_line_interface() -> None:
-    """Test the CLI."""
+def test_cli_basic_invocation() -> None:
+    """Basic tests of the CLI."""
     runner = CliRunner()
     result = runner.invoke(cli.main)
-    assert result.exit_code == 2 # Correct exit code for no CLI args passed
-    assert 'Error' in result.output
+    assert result.exit_code == 0 # Correct exit code for no CLI args passed
+    assert 'Usage' in result.output
+    
     help_result = runner.invoke(cli.main, ['--help'])
     assert help_result.exit_code == 0
     assert 'Usage' in help_result.output
 
+    badcmd_result = runner.invoke(cli.main, ['badcmd'])
+    assert badcmd_result.exit_code == 2
+    assert 'Error: No such command' in badcmd_result.output
+
+def test_cli_cmds() -> None:
+    """Test the CLI command options."""
+    runner = CliRunner()
+    result = runner.invoke(cli.main, ['get'])
+    assert result.exit_code == 2 # Correct exit code for no CLI args passed
+    assert 'Error: missing option' in result.output
+
+    help_result = runner.invoke(cli.main, ['get', '--help'])
+    assert help_result.exit_code == 2 
+    assert 'Options:' in result.output
+
+    cli_opts = [
+        'get', 
+        '--tenancy_name',
+        'mytenancy',
+        '--domain_name'
+        '--mydomain'
+    ]
+    help_result = runner.invoke(cli.main, cli_opts)
+    assert help_result.exit_code == 2 
+    assert 'Options:' in result.output
 
 def test_serialise_policy() -> None:
     version: str = S3Policy.VERSION

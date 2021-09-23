@@ -42,7 +42,7 @@ def settings(settings_filepath: str) -> dict:
 def test_get_access_policy(creds: dict, settings: dict) -> None:
     """Try retrieving an existing policy"""
     policy_clnt = S3PolicyClnt(settings["endpoint"], key=creds["key"], 
-                            secret=["secret"])
+                            secret=creds["secret"])
                             
     policy = policy_clnt.get(settings['bucket_name'])
 

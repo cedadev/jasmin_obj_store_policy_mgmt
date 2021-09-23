@@ -5,9 +5,9 @@ __contact__ = 'philip.kershaw@stfc.ac.uk'
 __copyright__ = "Copyright 2021 United Kingdom Research and Innovation"
 __license__ = "BSD - see LICENSE file in top-level package directory"
 import json
-from typing import List, TypedDict, Union, overload
+from typing import List, TypedDict, Union
 
-
+   
 class TS3Principal(TypedDict):
     user: Union[str, List[str]]
     group: Union[str, List[str]]
@@ -33,6 +33,8 @@ class S3Policy:
     # Standard version string for S3
     VERSION = "2008-10-17"
  
+    JSON_REPR_IDENT = 4 # pretty printing for __repr__
+    
     def __init__(self, version: str = VERSION, id: str = None, 
                 statement: List[TS3PolicyStatement] = None) -> None:
         if statement is None:
@@ -68,7 +70,7 @@ class S3Policy:
         return policy
 
     def __repr__(self) -> str:
-        return json.dumps(self._policy)
+        return json.dumps(self._policy, indent=self.JSON_REPR_IDENT)
 
     @property
     def serialisation(self) -> str:

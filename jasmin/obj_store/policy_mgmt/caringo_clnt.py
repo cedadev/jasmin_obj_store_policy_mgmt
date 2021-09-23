@@ -40,9 +40,6 @@ class CaringoClnt:
         self._base_uri: str = base_uri
         self._adm_uri: str = urllib.parse.urljoin(self._base_uri, 
                                                 self.ADM_IFACE_PFX)
-
-        self._session: Union[None, requests.Session] = None
-        self._tok: Union[None, str] = None
         
         # Call API to get token and initiate session
         self.init_session(username, passwd)
@@ -60,13 +57,13 @@ class CaringoClnt:
                                     "user {!r}: {}".format(username, resp.text),
                                     resp)
         
-        self._tok = resp.cookies.get(self.COOKIE_NAME)
+        self._tok = resp.cookies.get(self.COOKIE_NAME) # type: ignore
         if self._tok is None:
             raise AuthenticationError("Expecting cookie named "
                             "{!r} in response".format(self.COOKIE_NAME), resp)
 
     @property
-    def tok(self):
+    def tok(self) -> Union[None, str]:
         return self._tok
 
     def _get_domain_item(self, tenant_name: str, domain_name: str, 

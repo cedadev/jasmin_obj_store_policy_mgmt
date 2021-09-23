@@ -3,9 +3,9 @@ __author__ = """Philip Kershaw"""
 __contact__ = 'philip.kershaw@stfc.ac.uk'
 __copyright__ = "Copyright 2021 United Kingdom Research and Innovation"
 __license__ = "BSD - see LICENSE file in top-level package directory"
-import boto3
-from botocore import UNSIGNED
-from botocore.client import Config
+import boto3 # type: ignore
+from botocore import UNSIGNED # type: ignore
+from botocore.client import Config # type: ignore
 
 from .policy import S3Policy
 
