@@ -68,7 +68,7 @@ def test_cli_cmds() -> None:
     runner = CliRunner()
     result = runner.invoke(cli.main, ['get'])
     assert result.exit_code == 2 # Correct exit code for no CLI args passed
-    assert 'Error: missing option' in result.output
+    assert 'Error:' in result.output
 
     help_result = runner.invoke(cli.main, ['get', '--help'])
     assert help_result.exit_code == 2 

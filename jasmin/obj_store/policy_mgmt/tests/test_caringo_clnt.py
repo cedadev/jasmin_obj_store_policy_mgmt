@@ -70,4 +70,3 @@ def test_put_domain_policy(creds: dict, settings: dict,
 
     clnt.put_domain_policy(settings['tenancy_name'], settings['domain_name'],
                         s3_policy)
-    pass
