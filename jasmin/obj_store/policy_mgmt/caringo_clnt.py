@@ -6,11 +6,15 @@ __license__ = "BSD - see LICENSE file in top-level package directory"
 from typing import Union, List, Mapping, Any
 import typing
 import urllib.parse
+import logging
 
 import requests
 from requests.auth import HTTPBasicAuth
 
 from jasmin.obj_store.policy_mgmt.policy import S3Policy
+
+
+log = logging.getLogger(__name__)
 
 
 class Error(Exception):
@@ -46,7 +50,7 @@ class CaringoClnt:
 
     def init_session(self, username: str, passwd: str) -> None:
         """Obtain a token in order to start a session"""
-
+        log.info("Get access token...")
         tok_uri: str = urllib.parse.urljoin(self._base_uri, self.TOK_PATH)
 
         self._session = requests.Session()
@@ -79,8 +83,8 @@ class CaringoClnt:
 
         resp = self._session.get(domain_uri)
         if not resp.ok:
-            raise RequestError("Error calling GET for "
-                            "{!r}: {}".format(domain_uri, resp.text), resp)
+            raise RequestError("{} response calling GET for {!r}: {}".format(
+                            resp.status_code, domain_uri, resp.text), resp)
 
         return resp.json()
 
@@ -98,17 +102,19 @@ class CaringoClnt:
 
         resp: requests.Response = self._session.put(domain_uri, data=payload)
         if not resp.ok:
-            raise RequestError("Error calling PUT for "
-                                "{!r}: {}".format(domain_uri, resp.text), resp)
+            raise RequestError("{} response calling PUT for {!r}: {}".format(
+                            resp.status_code, domain_uri, resp.text), resp)
 
     def get_domain_etc(self, tenant_name: str, 
                         domain_name: str) -> Union[dict, List[dict]]:
         """Get etc document for given domain"""
+        log.info("Calling get_domain_etc...")
         operation: str = "etc"
         return self._get_domain_item(tenant_name, domain_name, operation)
 
     def get_domain_policy(self, tenant_name: str, domain_name: str) -> S3Policy:
         """Get etc document for given domain"""
+        log.info("Calling get_domain_policy...")
         operation: str = "etc/policy.json"
         policy_d = self._get_domain_item(tenant_name, domain_name, operation)
 
@@ -117,6 +123,7 @@ class CaringoClnt:
     def put_domain_policy(self, tenant_name: str, domain_name: str,
                         policy: S3Policy) -> None:
         """Set access policy for a given domain"""
+        log.info("Calling get_domain_etc...")
         operation: str = "etc/policy.json"
 
         self._put_domain_item(tenant_name, domain_name, operation, 
