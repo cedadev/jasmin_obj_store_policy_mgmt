@@ -1,11 +1,11 @@
 """Module for interacting with the S3 API."""
 __author__ = """Philip Kershaw"""
-__contact__ = 'philip.kershaw@stfc.ac.uk'
+__contact__ = "philip.kershaw@stfc.ac.uk"
 __copyright__ = "Copyright 2021 United Kingdom Research and Innovation"
 __license__ = "BSD - see LICENSE file in top-level package directory"
-import boto3 # type: ignore
-from botocore import UNSIGNED # type: ignore
-from botocore.client import Config # type: ignore
+import boto3  # type: ignore
+from botocore import UNSIGNED  # type: ignore
+from botocore.client import Config  # type: ignore
 
 from .policy import S3Policy
 
@@ -18,31 +18,27 @@ class S3PolicyClnt:
         """Initialise Boto3 client"""
 
         if key is None:
-            boto3.client('s3', config=Config(signature_version=UNSIGNED))
+            boto3.client("s3", config=Config(signature_version=UNSIGNED))
 
         elif secret is None:
-            raise ValueError(
-                        "Key and secret must be set for non-anonymous access")
+            raise ValueError("Key and secret must be set for non-anonymous access")
 
-        self._clnt = boto3.client('s3',
-                        endpoint_url=uri, 
-                        aws_access_key_id=key,
-                        aws_secret_access_key=secret)
+        self._clnt = boto3.client(
+            "s3", endpoint_url=uri, aws_access_key_id=key, aws_secret_access_key=secret
+        )
 
     def put(self, policy: S3Policy, bucket_name: str) -> None:
         """Write a policy to a given bucket"""
 
         # Set the new policy
-        self._clnt.put_bucket_policy(Bucket=bucket_name, 
-                                    Policy=policy.serialisation)
+        self._clnt.put_bucket_policy(Bucket=bucket_name, Policy=policy.serialisation)
 
     def get(self, bucket_name: str) -> S3Policy:
         """Read existing policy for a given bucket"""
 
         # Get the policy
-        get_bucket_policy_resp = self._clnt.get_bucket_policy(
-                                                            Bucket=bucket_name)
+        get_bucket_policy_resp = self._clnt.get_bucket_policy(Bucket=bucket_name)
 
-        policy = S3Policy.from_string(get_bucket_policy_resp['Policy'])
+        policy = S3Policy.from_string(get_bucket_policy_resp["Policy"])
 
-        return policy                                
+        return policy

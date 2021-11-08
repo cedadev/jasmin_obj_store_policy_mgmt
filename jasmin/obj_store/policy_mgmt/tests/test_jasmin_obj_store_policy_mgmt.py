@@ -3,11 +3,11 @@
 """Tests for `jasmin_obj_store_policy_mgmt` package."""
 
 __author__ = """Philip Kershaw"""
-__contact__ = 'philip.kershaw@stfc.ac.uk'
+__contact__ = "philip.kershaw@stfc.ac.uk"
 __copyright__ = "Copyright 2021 United Kingdom Research and Innovation"
 __license__ = "BSD - see LICENSE file in top-level package directory"
-import os
 import json
+import os
 import typing
 from typing import List
 
@@ -15,8 +15,11 @@ import pytest
 from click.testing import CliRunner
 
 from jasmin.obj_store.policy_mgmt import cli
-from jasmin.obj_store.policy_mgmt.policy import S3Policy, TS3PolicyStatement, \
-    TS3Principal
+from jasmin.obj_store.policy_mgmt.policy import (
+    S3Policy,
+    TS3PolicyStatement,
+    TS3Principal,
+)
 
 
 @pytest.fixture
@@ -52,47 +55,51 @@ def test_cli_basic_invocation() -> None:
     """Basic tests of the CLI."""
     runner = CliRunner()
     result = runner.invoke(cli.main)
-    assert result.exit_code == 0 # Correct exit code for no CLI args passed
-    assert 'Usage' in result.output
-    
-    help_result = runner.invoke(cli.main, ['--help'])
-    assert help_result.exit_code == 0
-    assert 'Usage' in help_result.output
+    assert result.exit_code == 0  # Correct exit code for no CLI args passed
+    assert "Usage" in result.output
 
-    badcmd_result = runner.invoke(cli.main, ['badcmd'])
+    help_result = runner.invoke(cli.main, ["--help"])
+    assert help_result.exit_code == 0
+    assert "Usage" in help_result.output
+
+    badcmd_result = runner.invoke(cli.main, ["badcmd"])
     assert badcmd_result.exit_code == 2
-    assert 'Error: No such command' in badcmd_result.output
+    assert "Error: No such command" in badcmd_result.output
+
 
 def test_cli_cmds() -> None:
     """Test the CLI command options."""
     runner = CliRunner()
-    result = runner.invoke(cli.main, ['get'])
-    assert result.exit_code == 2 # Correct exit code for no CLI args passed
-    assert 'Error:' in result.output
+    result = runner.invoke(cli.main, ["get"])
+    assert result.exit_code == 2  # Correct exit code for no CLI args passed
+    assert "Error:" in result.output
 
-    help_result = runner.invoke(cli.main, ['get', '--help'])
-    assert help_result.exit_code == 2 
-    assert 'Options:' in result.output
+    help_result = runner.invoke(cli.main, ["get", "--help"])
+    assert help_result.exit_code == 2
+    assert "Options:" in result.output
 
     cli_opts = [
-        'get', 
-        '--tenancy_name',
-        'mytenancy',
-        '--domain_name'
-        '--mydomain'
+        "--base_uri",
+        "http://localhost:3000/" "-u",
+        "user" "--tenancy_name",
+        "mytenancy",
+        "--domain_name",
+        "mydomain",
+        "get",
     ]
     help_result = runner.invoke(cli.main, cli_opts)
-    assert help_result.exit_code == 2 
-    assert 'Options:' in result.output
+    assert help_result.exit_code == 2
+    assert "Options:" in result.output
+
 
 def test_serialise_policy() -> None:
     version: str = S3Policy.VERSION
     statement: TS3PolicyStatement = {
-        "Sid": "My Statement", 
+        "Sid": "My Statement",
         "Effect": "Allow",
         "Principal": TS3Principal(user="me", group=["admins"]),
         "Action": ["ListBucket"],
-        "Resource": "*"
+        "Resource": "*",
     }
 
     statement_list: List[TS3PolicyStatement] = [statement]
@@ -115,6 +122,7 @@ def test_parse_policy_from_string(policy_string: str) -> None:
     policy = S3Policy.from_string(policy_string)
 
     assert "test-members" in policy.serialisation
+
 
 def test_parse_policy_from_dict(policy_dict: dict) -> None:
     policy = S3Policy.from_dict(policy_dict)
