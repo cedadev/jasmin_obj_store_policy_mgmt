@@ -3,12 +3,14 @@ __author__ = """Philip Kershaw"""
 __contact__ = "philip.kershaw@stfc.ac.uk"
 __copyright__ = "Copyright 2021 United Kingdom Research and Innovation"
 __license__ = "BSD - see LICENSE file in top-level package directory"
+import json
 import logging
 import typing
 import urllib.parse
-from typing import Any, List, Mapping, Optional, Union
+from typing import Any, List, Mapping, Optional, Tuple, Union
 
 import requests
+import yaml
 from requests.auth import HTTPBasicAuth
 
 from jasmin.obj_store.policy_mgmt.policy import S3Policy
@@ -32,6 +34,10 @@ class AuthenticationError(RequestError):
     """Error Authenticating client"""
 
 
+class ConfigError(Error):
+    """Error with configuration options"""
+
+
 class CaringoClnt:
     """Web service client to interact with Caringo DataCore API"""
 
@@ -39,10 +45,21 @@ class CaringoClnt:
     COOKIE_NAME = "token"
     ADM_IFACE_PFX = "/_admin/manage/"
     DOMAIN_PATH_TMPL = "tenants/{tenant}/domains/{domain}/{operation}"
+    CREDS_FILEPATH_ENVVAR_NAME = "JASMIN_OSPM_CREDS_FILEPATH"
 
-    def __init__(self, base_uri: str, username: str, passwd: str) -> None:
+    def __init__(
+        self,
+        base_uri: str,
+        username: str,
+        passwd: str,
+        domain_name: str = None,
+        tenancy_name: str = None,
+    ) -> None:
         self._base_uri: str = base_uri
         self._adm_uri: str = urllib.parse.urljoin(self._base_uri, self.ADM_IFACE_PFX)
+
+        self._domain_name: Union[str, None] = domain_name
+        self._tenancy_name: Union[str, None] = tenancy_name
 
         # Call API to get token and initiate session
         self.init_session(username, passwd)
@@ -69,24 +86,71 @@ class CaringoClnt:
                 resp=resp,
             )
 
+    @classmethod
+    def from_config(cls, config_filepath: str, creds_filepath: str) -> "CaringoClnt":
+        """Instantiate client from a YAML configuration file and optional creds
+        file"""
+
+        settings = cls.parse_config_file(config_filepath)
+        creds_args: Tuple[str, str] = cls.parse_creds_file(creds_filepath)
+
+        obj = cls(
+            settings["base_uri"],
+            *creds_args,
+            tenancy_name=settings["tenancy_name"],
+            domain_name=settings["domain_name"],
+        )
+
+        return obj
+
+    @classmethod
+    def parse_config_file(cls, config_filepath: str) -> dict:
+        """Read settings from YAML file"""
+        with open(config_filepath) as config_file:
+            settings = yaml.safe_load(config_file)
+
+        return settings
+
+    @staticmethod
+    def parse_creds_file(creds_filepath: str) -> Tuple[str, str]:
+        "Read username and password from separate credentials file"
+        with open(creds_filepath) as creds_file:
+            creds = json.load(creds_file)
+
+        return creds["username"], creds["passwd"]
+
+    @property
+    def domain_name(self) -> str:
+        return self._domain_name
+
+    @domain_name.setter
+    def domain_name(self, value: str):
+        self._domain_name = value
+
+    @property
+    def tenancy_name(self) -> str:
+        return self._tenancy_name
+
+    @tenancy_name.setter
+    def tenancy_name(self, value: str):
+        self._tenancy_name = value
+
     @property
     def tok(self) -> Union[None, str]:
         return self._tok
 
-    def _get_domain_item(
-        self, tenant_name: str, domain_name: str, operation: str
-    ) -> Union[dict, List[dict]]:
+    def _get_domain_item(self, operation: str) -> Union[dict, List[dict]]:
         """Execute GET operation on given artifact for domain. operation
         is a path suffix"""
-        if not tenant_name:
-            raise RequestError("Tenant name is not set - API call not dispatched")
+        if not self._tenancy_name:
+            raise RequestError("Tenancy name is not set - API call not dispatched")
 
-        if not domain_name:
+        if not self._domain_name:
             raise RequestError("Domain name is not set - API call not dispatched")
 
         path_dict: dict = {
-            "tenant": tenant_name,
-            "domain": domain_name,
+            "tenant": self._tenancy_name,
+            "domain": self._domain_name,
             "operation": operation,
         }
 
@@ -106,22 +170,20 @@ class CaringoClnt:
 
     def _put_domain_item(
         self,
-        tenant_name: str,
-        domain_name: str,
         operation: str,
         payload: Union[str, Mapping[str, Any]],
     ) -> None:
         """Execute PUT operation on given artifact for domain. operation
         is a path suffix"""
-        if not tenant_name:
-            raise RequestError("Tenant name is not set - API call not dispatched")
+        if not self._tenancy_name:
+            raise RequestError("Tenancy name is not set - API call not dispatched")
 
-        if not domain_name:
+        if not self._domain_name:
             raise RequestError("Domain name is not set - API call not dispatched")
 
         path_dict: dict = {
-            "tenant": tenant_name,
-            "domain": domain_name,
+            "tenant": self._tenancy_name,
+            "domain": self._domain_name,
             "operation": operation,
         }
 
@@ -137,27 +199,23 @@ class CaringoClnt:
                 resp=resp,
             )
 
-    def get_domain_etc(
-        self, tenant_name: str, domain_name: str
-    ) -> Union[dict, List[dict]]:
+    def get_domain_etc(self) -> Union[dict, List[dict]]:
         """Get etc document for given domain"""
         log.info("Calling get_domain_etc...")
         operation: str = "etc"
-        return self._get_domain_item(tenant_name, domain_name, operation)
+        return self._get_domain_item(operation)
 
-    def get_domain_policy(self, tenant_name: str, domain_name: str) -> S3Policy:
+    def get_domain_policy(self) -> S3Policy:
         """Get etc document for given domain"""
         log.info("Calling get_domain_policy...")
         operation: str = "etc/policy.json"
-        policy_d = self._get_domain_item(tenant_name, domain_name, operation)
+        policy_d = self._get_domain_item(operation)
 
         return S3Policy.from_dict(typing.cast(dict, policy_d))
 
-    def put_domain_policy(
-        self, tenant_name: str, domain_name: str, policy: S3Policy
-    ) -> None:
+    def put_domain_policy(self, policy: S3Policy) -> None:
         """Set access policy for a given domain"""
         log.info("Calling get_domain_etc...")
         operation: str = "etc/policy.json"
 
-        self._put_domain_item(tenant_name, domain_name, operation, policy.serialisation)
+        self._put_domain_item(operation, policy.serialisation)
